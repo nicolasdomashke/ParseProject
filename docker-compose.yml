@@ -19,7 +19,7 @@ services:
     depends_on:
       - database
     environment:
-      DATABASE_URL: postgres://your_user:your_password@database:5432/vacancies
+      DATABASE_URL: postgres://nickdom:123qwe@database:5432/vacancies
     volumes:
       - .:/app
 
@@ -30,7 +30,7 @@ services:
     depends_on:
       - backend
     environment:
-      DATABASE_URL: postgres://your_user:your_password@database:5432/vacancies
+      DATABASE_URL: postgres://nickdom:123qwe@database:5432/vacancies
     volumes:
       - .:/app
 
