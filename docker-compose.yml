@@ -4,11 +4,11 @@ services:
   database:
     build:
       context: .
-      dockerfile: Dockerfile.db
+      dockerfile: Dockerfile.database
     environment:
       POSTGRES_DB: vacancies
-      POSTGRES_USER: your_user
-      POSTGRES_PASSWORD: your_password
+      POSTGRES_USER: nickdom
+      POSTGRES_PASSWORD: 123qwe
     volumes:
       - db_data:/var/lib/postgresql/data
 

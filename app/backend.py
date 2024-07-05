@@ -1,6 +1,6 @@
 import requests
-from db import save_data_to_db
-from db import get_vacancies
+from database import save_data_to_db
+from database import get_vacancies
 
 def fetch_hh_data(endpoint):
     base_url = "https://api.hh.ru/"
