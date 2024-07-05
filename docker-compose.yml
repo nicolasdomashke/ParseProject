@@ -3,8 +3,8 @@ version: '3.8'
 services:
   database:
     build:
-      context: .
-      dockerfile: Dockerfile.database
+      context: ./database
+      dockerfile: Dockerfile
     environment:
       POSTGRES_DB: vacancies
       POSTGRES_USER: nickdom
@@ -14,25 +14,25 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ./backend
+      dockerfile: Dockerfile
     depends_on:
       - database
     environment:
       DATABASE_URL: postgres://nickdom:123qwe@database:5432/vacancies
     volumes:
-      - .:/app
+      - ./backend:/app
 
-  frontend:
+  bot:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: ./bot
+      dockerfile: Dockerfile
     depends_on:
       - backend
     environment:
       DATABASE_URL: postgres://nickdom:123qwe@database:5432/vacancies
     volumes:
-      - .:/app
+      - ./bot:/app
 
 volumes:
   db_data:

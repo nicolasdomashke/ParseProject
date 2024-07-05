@@ -5,6 +5,6 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY frontend.py .
+COPY bot.py .
 
-CMD ["python", "frontend.py"]
+CMD ["python", "bot.py"]
