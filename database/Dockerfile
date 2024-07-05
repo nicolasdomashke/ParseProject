@@ -9,4 +9,4 @@ COPY . .
 
 ENV PYTHONPATH="/app"
 
-CMD ["python", "database.py"]
+CMD ["python", "-m", "database.py"]
