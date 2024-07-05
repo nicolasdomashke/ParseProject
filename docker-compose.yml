@@ -4,7 +4,7 @@ services:
   database:
     build:
       context: .
-      dockerfile: Dockerfile.database
+      dockerfile: Dockerfile.db
     environment:
       POSTGRES_DB: vacancies
       POSTGRES_USER: your_user
