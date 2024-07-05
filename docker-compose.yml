@@ -32,6 +32,7 @@ services:
       context: ./bot
       dockerfile: Dockerfile
     depends_on:
+      - database
       - backend
     environment:
       DATABASE_URL: postgres://nickdom:123qwe@database:5432/vacancies
