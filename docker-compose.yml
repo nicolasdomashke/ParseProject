@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  database:
+    build:
+      context: .
+      dockerfile: Dockerfile.database
+    environment:
+      POSTGRES_DB: vacancies
+      POSTGRES_USER: your_user
+      POSTGRES_PASSWORD: your_password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    depends_on:
+      - database
+    environment:
+      DATABASE_URL: postgres://your_user:your_password@database:5432/vacancies
+    volumes:
+      - .:/app
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    depends_on:
+      - backend
+    environment:
+      DATABASE_URL: postgres://your_user:your_password@database:5432/vacancies
+    volumes:
+      - .:/app
+
+volumes:
+  db_data:
