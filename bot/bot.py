@@ -1,8 +1,8 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, Filters
-from backend import fetch_hh_data
-from backend import fetch_db_data
+from backend.backend import fetch_hh_data
+from backend.backend import fetch_db_data
 
 filters = {'text': '', 'area': '1', 'per_page': '5', 'page': '0'}
 filters = {}

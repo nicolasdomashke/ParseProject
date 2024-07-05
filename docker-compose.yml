@@ -20,8 +20,10 @@ services:
       - database
     environment:
       DATABASE_URL: postgres://nickdom:123qwe@database:5432/vacancies
+      PYTHONPATH: "/app:/app/database"
     volumes:
       - ./backend:/app
+      - ./database:/app/database
 
   bot:
     build:
@@ -31,8 +33,10 @@ services:
       - backend
     environment:
       DATABASE_URL: postgres://nickdom:123qwe@database:5432/vacancies
+      PYTHONPATH: "/app:/app/backend"
     volumes:
       - ./bot:/app
+      - ./backend:/app/backend
 
 volumes:
   db_data:
