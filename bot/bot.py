@@ -1,8 +1,6 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, Filters
-from backend.backend import fetch_hh_data
-from backend.backend import fetch_db_data
 from backend import fetch_hh_data
 from backend import fetch_db_data
 
@@ -101,7 +99,7 @@ def region_input(update: Update, context: CallbackContext) -> None:
 # Main function to start the bot
 def main() -> None:
     # Replace 'YOUR_TOKEN' with your actual bot token
-    updater = Updater("")
+    updater = Updater("7203797577:AAFqQkZhxY736lOwPYi-cSGw50FxlVUDGcQ")
 
 
     dispatcher = updater.dispatcher
