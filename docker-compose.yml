@@ -9,9 +9,7 @@ services:
       POSTGRES_DB: vacancies
       POSTGRES_USER: nickdom
       POSTGRES_PASSWORD: 123qwe
-      PYTHONPATH: "/app"
     volumes:
-      - ./database:/app
       - db_data:/var/lib/postgresql/data
 
   backend:
@@ -22,7 +20,7 @@ services:
       - database
     environment:
       DATABASE_URL: postgres://nickdom:123qwe@database:5432/vacancies
-      PYTHONPATH: "/app"
+      PYTHONPATH: "/app:/app/database"
     volumes:
       - ./backend:/app
       - ./database:/app/database
@@ -32,14 +30,13 @@ services:
       context: ./bot
       dockerfile: Dockerfile
     depends_on:
-      - database
       - backend
     environment:
-      DATABASE_URL: postgres://nickdom:123qwe@database:5432/vacancies
-      PYTHONPATH: "/app"
+      PYTHONPATH: "/app:/app/backend:/app/database"
     volumes:
       - ./bot:/app
       - ./backend:/app/backend
+      - ./database:/app/database
 
 volumes:
   db_data:
