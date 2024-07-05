@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: nickdom
       POSTGRES_PASSWORD: 123qwe
     volumes:
-        - ./database:/app
+      - ./database:/app
       - db_data:/var/lib/postgresql/data
 
   backend:
