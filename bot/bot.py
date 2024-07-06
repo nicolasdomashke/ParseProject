@@ -40,7 +40,9 @@ def start(update: Update, context: CallbackContext) -> None:
     )
 
 def update_database(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text("Обновление данных...")
     fetch_hh_data('vacancies')
+    update.message.reply_text("Обновление завершено!")
 
 def vacancies(update: Update, context: CallbackContext) -> None:
     #filters = {'text': '', 'area': '1'}
@@ -53,6 +55,14 @@ def vacancies(update: Update, context: CallbackContext) -> None:
         display_page(update, context)
     else:
         update.message.reply_text("Вакансии не найдены или возникла ошибка")
+
+def set_filters(update: Update, context: CallbackContext) -> None:
+    keyboard = [
+        [InlineKeyboardButton(f"Текущий регион: " + context.user_data['filters']['area'], callback_data='set_region')],
+        [InlineKeyboardButton("Компания: " + context.user_data['filters']['employer'], callback_data='set_employer')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Выберете настройку:', reply_markup=reply_markup)
 
 def display_page(update: Update, context: CallbackContext) -> None:
     page = context.user_data.get('page', 0)
@@ -85,14 +95,6 @@ def display_page(update: Update, context: CallbackContext) -> None:
             update.message.reply_text(message, reply_markup=reply_markup)
     else:
         update.message.reply_text("Вакансии не найдены. Попробуйте изменить запрос или фильтры")
-
-def set_filters(update: Update, context: CallbackContext) -> None:
-    keyboard = [
-        [InlineKeyboardButton(f"Текущий регион: " + context.user_data['filters']['area'], callback_data='set_region')],
-        [InlineKeyboardButton("Компания: " + context.user_data['filters']['employer'], callback_data='set_employer')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Выберете настройку:', reply_markup=reply_markup)
 
 def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
@@ -148,7 +150,7 @@ def export(update: Update, context: CallbackContext) -> None:
     os.remove(file_path)
 
 def main() -> None:
-    updater = Updater("7203797577:AAFZ1IX72MKxF0Dz0Aq9EalYizrDrz9_cHM")
+    updater = Updater("")
 
     dispatcher = updater.dispatcher
 

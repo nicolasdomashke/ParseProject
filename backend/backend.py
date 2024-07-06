@@ -28,8 +28,6 @@ def fetch_hh_data(endpoint):
     save_data_to_db(all_items)
 
 def fetch_db_data(filters=None):
-    #if not get_vacancies():
-    #    fetch_hh_data("vacancies")
     return get_vacancies(filters=filters)
     
 def export_vacancies_to_excel(vacancies, file_path='vacancies.xlsx'):

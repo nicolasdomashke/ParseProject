@@ -5,7 +5,6 @@ from sqlalchemy.orm import sessionmaker
 Base = declarative_base()
 
 def save_data_to_db(items):
-    print(len(items))
     for item in items:
         vacancy = Vacancy(
             id=item['id'],
