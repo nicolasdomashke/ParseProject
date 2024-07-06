@@ -3,39 +3,61 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, Filters
 from backend.backend import fetch_hh_data
 from backend.backend import fetch_db_data
+from backend.backend import export_vacancies_to_excel
+import os
 
-filters = {'text': '', 'area': '1', 'per_page': '5', 'page': '0'}
-filters = {}
+#filters = {'text': '', 'area': '1', 'per_page': '5', 'page': '0'}
+#filters = {}
+#region = "-"
 
-# Set up logging
+REGIONS = {
+    'москва': 1,
+    'санкт-петербург': 2,
+    'новосибирск': 4,
+    'екатеринбург': 3,
+    'нижний новгород': 66,
+    'казань': 88,
+    'челябинск': 104,
+    'омск': 68,
+    'самара': 78,
+    'ростов-на-дону': 76,
+    'уфа': 99,
+    'красноярск': 54,
+    'пермь': 72,
+    'волгоград': 85,
+    'владивосток': 105,
+    'краснодар': 53,
+}
+
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Start command handler
 def start(update: Update, context: CallbackContext) -> None:
+    context.user_data.setdefault('filters', {'area' : '-', 'employer' : '-'})
     update.message.reply_text(
-        "Hi! I am your Job Search Bot. Use /vacancies to search for job vacancies."
+        "/vacancies <...> для поиска нужной вакансии\n/export для сохранения результатов в excel таблицу\n/filter для настройки фильтров\n/updateDB для обновления базы данных"
     )
 
 def update_database(update: Update, context: CallbackContext) -> None:
     fetch_hh_data('vacancies')
-# Vacancies command handler
-def vacancies(update: Update, context: CallbackContext) -> None:
 
+def vacancies(update: Update, context: CallbackContext) -> None:
+    #filters = {'text': '', 'area': '1'}
     context.user_data['page'] = 0
     query = ' '.join(context.args)
-    filters['text'] = query
-    data = fetch_db_data(filters)
+    context.user_data['filters']['text'] = query
+    data = fetch_db_data(context.user_data['filters'])
     context.user_data['data'] = data
     if data:
         display_page(update, context)
     else:
-        update.message.reply_text("No vacancies found or an error occurred.")
+        update.message.reply_text("Вакансии не найдены или возникла ошибка")
 
 def display_page(update: Update, context: CallbackContext) -> None:
     page = context.user_data.get('page', 0)
     vacancies = context.user_data['data']
-    items_per_page = 10  # Number of items per page
+    items_per_page = 10
     start = page * items_per_page
     end = start + items_per_page
     results = vacancies[start:end]
@@ -44,17 +66,17 @@ def display_page(update: Update, context: CallbackContext) -> None:
         message = ""
         for vacancy in results:
             message += (
-                f"Vacancy: {vacancy.name}\n"
-                f"Employer: {vacancy.employer_name}\n"
-                f"Area: {vacancy.area}\n"
+                f"Вакансия: {vacancy.name}\n"
+                f"Компания: {vacancy.employer_name}\n"
+                f"Регион: {vacancy.area}\n"
                 f"URL: {vacancy.url}\n"
                 f"{'-'*40}\n"
             )
         keyboard = []
         if page > 0:
-            keyboard.append(InlineKeyboardButton("Previous", callback_data='previous_page'))
+            keyboard.append(InlineKeyboardButton("Назад", callback_data='previous_page'))
         if end < len(vacancies):
-            keyboard.append(InlineKeyboardButton("Next", callback_data='next_page'))
+            keyboard.append(InlineKeyboardButton("Вперед", callback_data='next_page'))
         reply_markup = InlineKeyboardMarkup([keyboard])
 
         if update.callback_query:
@@ -62,15 +84,15 @@ def display_page(update: Update, context: CallbackContext) -> None:
         else:
             update.message.reply_text(message, reply_markup=reply_markup)
     else:
-        update.message.reply_text("No vacancies found.")
+        update.message.reply_text("Вакансии не найдены. Попробуйте изменить запрос или фильтры")
 
 def set_filters(update: Update, context: CallbackContext) -> None:
     keyboard = [
-        [InlineKeyboardButton("Set Region", callback_data='set_region')],
-        [InlineKeyboardButton("Set Job Category", callback_data='set_job_category')]
+        [InlineKeyboardButton(f"Текущий регион: " + context.user_data['filters']['area'], callback_data='set_region')],
+        [InlineKeyboardButton("Компания: " + context.user_data['filters']['employer'], callback_data='set_employer')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Choose an option:', reply_markup=reply_markup)
+    update.message.reply_text('Выберете настройку:', reply_markup=reply_markup)
 
 def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
@@ -83,24 +105,50 @@ def button(update: Update, context: CallbackContext) -> None:
     query.answer()
     
     if query.data == 'set_region':
-        query.edit_message_text(text="Please enter the region code:")
+        query.edit_message_text(text="Введите название региона:\n(или '-' для сброса фильтра)")
         context.user_data['awaiting_region'] = True
     
-    elif query.data == 'set_job_category':
-        pass
+    elif query.data == 'set_employer':
+        query.edit_message_text(text="Введите название компании:\n(или '-' для сброса фильтра)")
+        context.user_data['awaiting_employer'] = True
 
-def region_input(update: Update, context: CallbackContext) -> None:
+def filter_input(update: Update, context: CallbackContext) -> None:
     if context.user_data.get('awaiting_region'):
-        region_code = update.message.text
-        filters['area'] = region_code
-        update.message.reply_text(f"Region set to {region_code}.")
+        region_name = update.message.text.capitalize()
+        if region_name.lower() in REGIONS:
+            context.user_data['filters']['area'] = region_name
+            update.message.reply_text(f"Установлен регион: {region_name}")
+        elif region_name == "-":
+            context.user_data['filters']['area'] = "-"
+            update.message.reply_text(f"Фильтр сброшен")
+        else:
+            update.message.reply_text(f"Прошу прощения, я не знаю такого города (")
         context.user_data['awaiting_region'] = False
+    elif context.user_data.get('awaiting_employer'):
+        company_name = update.message.text.capitalize()
+        if company_name == "-":
+            context.user_data['filters']['employer'] = "-"
+            update.message.reply_text(f"Фильтр сброшен")
+        else:
+            context.user_data['filters']['employer'] = company_name
+            update.message.reply_text(f"Установлен фильтр по компании: {company_name}")
+        context.user_data['awaiting_employer'] = False
 
-# Main function to start the bot
+def export(update: Update, context: CallbackContext) -> None:
+    vacancies = context.user_data.get('data', [])
+    if not vacancies:
+        update.message.reply_text("Результы не найдены. Попробуйте /vacancies")
+        return
+
+    file_path = 'vacancies.xlsx'
+    export_vacancies_to_excel(vacancies, file_path)
+
+    with open(file_path, 'rb') as file:
+        update.message.reply_document(file)
+    os.remove(file_path)
+
 def main() -> None:
-    # Replace 'YOUR_TOKEN' with your actual bot token
-    updater = Updater("7203797577:AAFqQkZhxY736lOwPYi-cSGw50FxlVUDGcQ")
-
+    updater = Updater("7203797577:AAFZ1IX72MKxF0Dz0Aq9EalYizrDrz9_cHM")
 
     dispatcher = updater.dispatcher
 
@@ -109,12 +157,10 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("vacancies", vacancies))
     dispatcher.add_handler(CommandHandler("updateDB", update_database))
     dispatcher.add_handler(CommandHandler("filter", set_filters))
+    dispatcher.add_handler(CommandHandler("export", export))
     dispatcher.add_handler(CallbackQueryHandler(button))
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, region_input))
-    #dispatcher.add_handler(CallbackQueryHandler(handle_page, pattern='^next_page$'))
-    #dispatcher.add_handler(CallbackQueryHandler(handle_page, pattern='^previous_page$'))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, filter_input))
 
-    # Start the Bot
     updater.start_polling()
     updater.idle()
 

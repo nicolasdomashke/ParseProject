@@ -15,13 +15,15 @@ def save_data_to_db(items):
             url=item['alternate_url'],
             description=item['snippet'].get('responsibility', '')
         )
-        session.merge(vacancy)  # Use merge to avoid duplicates
+        session.merge(vacancy)
     session.commit()
 
-def get_vacancies(filters):
+def get_vacancies(filters={}):
     query = session.query(Vacancy)
-    if 'area' in filters:
-        query = query.filter(Vacancy.area == filters['area'])
+    if filters['area'] != "-":
+        query = query.filter(Vacancy.area.ilike(f"%{filters['area']}%"))
+    if filters['employer'] != "-":
+        query = query.filter(Vacancy.employer_name.ilike(f"%{filters['employer']}%"))
     if 'text' in filters:
         query = query.filter(Vacancy.name.ilike(f"%{filters['text']}%"))
     return query.all()
@@ -36,7 +38,6 @@ class Vacancy(Base):
     url = Column(String)
     description = Column(Text)
 
-# SQLite database
 engine = create_engine('sqlite:///vacancies.db')
 Base.metadata.create_all(engine)
 

@@ -1,6 +1,7 @@
 import requests
 from database import save_data_to_db
 from database import get_vacancies
+import pandas as pd
 
 def fetch_hh_data(endpoint):
     base_url = "https://api.hh.ru/"
@@ -27,35 +28,17 @@ def fetch_hh_data(endpoint):
     save_data_to_db(all_items)
 
 def fetch_db_data(filters=None):
+    #if not get_vacancies():
+    #    fetch_hh_data("vacancies")
     return get_vacancies(filters=filters)
     
-'''    
-# Define the API endpoint
-url = "https://api.hh.ru/vacancies"
-
-# Set parameters for the request
-params = {
-    'text': 'Python developer',  # Search query
-    'area': '1',  # Region (1 - Moscow)
-    'per_page': '10',  # Number of results per page
-    'page': '0'  # Page number
-}
-
-# Make the GET request
-response = requests.get(url, params=params)
-
-# Check the status code of the response
-if response.status_code == 200:
-    # Parse the JSON response
-    data = response.json()
-    
-    # Print the data (for demonstration purposes)
-    for vacancy in data['items']:
-        print(f"Vacancy: {vacancy['name']}")
-        print(f"Employer: {vacancy['employer']['name']}")
-        print(f"URL: {vacancy['alternate_url']}")
-        print('-' * 40)
-else:
-    print(f"Failed to fetch data: {response.status_code}")
-''' 
-
+def export_vacancies_to_excel(vacancies, file_path='vacancies.xlsx'):
+    data = [{
+        'ID': v.id,
+        'Name': v.name,
+        'Employer': v.employer_name,
+        'Area': v.area,
+        'URL': v.url
+    } for v in vacancies]
+    df = pd.DataFrame(data)
+    df.to_excel(file_path, index=False)
